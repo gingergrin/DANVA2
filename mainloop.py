@@ -677,8 +677,8 @@ def createDictionary():
         dictionaryloop = dictionaryloop + 1
 
 def createPDF():
-    global dictionaryloop, dictionaryloop2, correctAnswers, age, participant, errorsByMisjudgement
-    dictionaryloop2 = 0
+    global dictionaryloop, dictionaryloop2, correctAnswers, age, participant, errorsByMisjudgement, session, sessionInput
+    print(session)
     totalerrors = totalErrors
     age = ageInput.get_value()
     participant = participantInput.get_value()
@@ -884,38 +884,43 @@ def createPDF():
     # happygraphstarty = -161     # Moved to outside function for easier debugging
     #The following are for the other graphs
     fillpdfs.place_image('src/graphPictures/happyMisattributions.jpg', page2GraphStart, happygraphstarty, 'src/pdfMagic/completed.pdf', 'src/pdfMagic/completed1.pdf', 2, width=widthmisattributions, height=heightmisattributions)
-    fillpdfs.place_image('src/graphPictures/sadMisattributions.jpg', page2GraphStart, happygraphstarty+32, 'src/pdfMagic/completed1.pdf', 'src/pdfMagic/completed2.pdf', 2, width=widthmisattributions, height=heightmisattributions)
-    fillpdfs.place_image('src/graphPictures/angryMisattributions.jpg', page2GraphStart, happygraphstarty+63, 'src/pdfMagic/completed2.pdf', 'src/pdfMagic/completed3.pdf', 2, width=widthmisattributions, height=heightmisattributions)
-    fillpdfs.place_image('src/graphPictures/fearfulMisattributions.jpg', page2GraphStart, happygraphstarty+95, 'src/pdfMagic/completed3.pdf', 'src/pdfMagic/completed4.pdf', 2, width=widthmisattributions, height=heightmisattributions)
-    fillpdfs.place_image('src/graphPictures/errorsbygender.jpg',page2GraphStart, happygraphstarty+gender_addition, 'src/pdfMagic/completed4.pdf', 'src/pdfMagic/completed.pdf', 2, width=widthmisattributions, height=heightmisattributions+gender_height_misattributions_adjustment)
-    filename = expInfo['date'] + participant + danvasubtest + '.pdf'
-    sanitized_filename = sanitize_filename(filename)
-    filepath = 'reports/'+sanitized_filename
+    fillpdfs.place_image('src/graphPictures/sadMisattributions.jpg', page2GraphStart, happygraphstarty-43, 'src/pdfMagic/completed1.pdf', 'src/pdfMagic/completed2.pdf', 2, width=widthmisattributions, height=heightmisattributions)
+    fillpdfs.place_image('src/graphPictures/angryMisattributions.jpg', page2GraphStart, happygraphstarty-85, 'src/pdfMagic/completed2.pdf', 'src/pdfMagic/completed3.pdf', 2, width=widthmisattributions, height=heightmisattributions)
+    fillpdfs.place_image('src/graphPictures/fearfulMisattributions.jpg', page2GraphStart, happygraphstarty-126, 'src/pdfMagic/completed3.pdf', 'src/pdfMagic/completed4.pdf', 2, width=widthmisattributions, height=heightmisattributions)
+    fillpdfs.place_image('src/graphPictures/errorsbygender.jpg',page2GraphStart, happygraphstarty-238, 'src/pdfMagic/completed4.pdf', 'src/pdfMagic/completed.pdf', 2, width=widthmisattributions, height=heightmisattributions)
+    #We need to remove invalid characters from the file name string:  / ? < > \ : * | " 
+    participant = participant.replace(' ', '_')  # Replace spaces with underscores
+    participant = participant.replace('/', '_')  # Replace slashes with underscores
+    participant = participant.replace(':', '_')  # Replace colons with underscores
+    participant = participant.replace('?', '_')  # Replace question marks with underscores
+    participant = participant.replace('<', '_')
+    participant = participant.replace('>', '_')
+    participant = participant.replace('*', '_')
+    participant = participant.replace('|', '_')
+    participant = participant.replace('\\', '_')
+    participant = participant.replace('"', '_')
+    participant = participant.replace("'", '_')
+    session = session.replace(' ', '_')  # Replace spaces with underscores
+    session = session.replace('/', '_')  # Replace slashes with underscores
+    session = session.replace(':', '_')  # Replace colons with underscores
+    session = session.replace('?', '_')  # Replace question marks with underscores
+    session = session.replace('<', '_')
+    session = session.replace('>', '_')
+    session = session.replace('*', '_')
+    session = session.replace('|', '_')
+    session = session.replace('\\', '_')
+    session = session.replace('"', '_')
+    session = session.replace("'", '_')
+    fillpdfs.write_fillable_pdf('src/pdfMagic/completed.pdf', ('reports/'+expInfo['date']+participant+danvasubtest+'-session'+session+'.pdf'), data_dict, flatten=False) # was fillpdfs.write_fillable_pdf('src/pdfMagic/completed.pdf', 'reports/completed.pdf', data_dict, flatten=False)
 
-    fillpdfs.write_fillable_pdf('src/pdfMagic/completed.pdf', (filepath), data_dict, flatten=False) # was fillpdfs.write_fillable_pdf('src/pdfMagic/completed.pdf', 'reports/completed.pdf', data_dict, flatten=False)
 
 
+    
     # for some reason I am not having luck directly opening the file, and some coding other than the most obvious seems necesary
-    # NOTE: Change this back if encountering errors
-    # cur_path = os.path.dirname(__file__)
-    cur_path = os.getcwd()
-    print('current path',cur_path)
 
-    new_path = os.path.relpath(filepath, cur_path)
-    print('new path',new_path)
-    openAttempts = 0
-    number_of_allowed_attempts = 1000
-    while True:
-        print('Attempt:',openAttempts)
-        try:
-            os.startfile(new_path)
-            break
-        except:
-            openAttempts += 1
-            
-        if openAttempts > number_of_allowed_attempts:
-            break
-        
+    cur_path = os.path.dirname(__file__)
+    new_path = os.path.relpath('reports/'+expInfo['date']+participant+danvasubtest+'-session'+session+'.pdf', cur_path)
+    os.startfile(new_path)
 
 def mainMenuState():#(state)
     global displayMainMenu, showInstructions
@@ -938,7 +943,8 @@ width, height = surface.get_size()
 menu = pygame_menu.Menu('Welcome to the DANVA II test, please enter your information below', width - menuPadding, height - menuPadding,
                     theme=pygame_menu.themes.THEME_BLUE)
 
-session = menu.add.text_input('Session :  ', default='001')
+sessionInput = menu.add.text_input('Session :  ', default='001')
+session= sessionInput.get_value()
 participantInput = menu.add.text_input('Participant :  ', default='')
 participant = participantInput.get_value() # put this in the pdf function
 ageInput = menu.add.text_input('Age :    ', default='')
@@ -1000,6 +1006,8 @@ while run:
                 pygame.quit()
                 run = False
                 quit()
+
+                
     # events = [events]
 
     #surface.fill((200, 200, 200))
